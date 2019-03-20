@@ -1,6 +1,6 @@
 package br.com.gcestaro.test.util;
 
-import br.com.gcestaro.model.User;
+import br.com.gcestaro.model.lifecycle.User;
 
 public final class UserTestMock {
 

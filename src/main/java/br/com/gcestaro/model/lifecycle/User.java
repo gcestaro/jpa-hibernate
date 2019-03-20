@@ -1,4 +1,4 @@
-package br.com.gcestaro.model;
+package br.com.gcestaro.model.lifecycle;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

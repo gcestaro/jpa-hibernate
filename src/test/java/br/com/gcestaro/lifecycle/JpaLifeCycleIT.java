@@ -1,197 +1,111 @@
 package br.com.gcestaro.lifecycle;
 
-import br.com.gcestaro.model.User;
-import br.com.gcestaro.test.util.JpaIntegrationTest;
-import org.hibernate.PersistentObjectException;
-import org.junit.jupiter.api.Test;
+import br.com.gcestaro.model.lifecycle.User;
+import br.com.gcestaro.test.util.UserTestMock;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
-import javax.persistence.PersistenceException;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
+public abstract class JpaLifeCycleIT {
 
-public class JpaLifeCycleIT extends JpaIntegrationTest {
+    protected static EntityManagerFactory entityManagerFactory;
 
-    @Test
-    public void persistTransientUser() {
-        doPersist();
-        doCommit();
+    protected EntityManager entityManager;
+
+    protected User user;
+
+    protected User managedUser;
+
+    protected User detachedUser;
+
+    @BeforeAll
+    public static void setUpEntityManagerFactory(){
+        createFactory();
     }
 
-    @Test
-    public void mergeTransientUser() {
-        doMerge();
-        doCommit();
+    @AfterAll
+    public static void tearDownEntityManagerFactory(){
+        closeFactory();
     }
 
-    @Test
-    public void removeTransientUser() {
-        doRemove();
-        doCommit();
-    }
-
-    @Test
-    public void persistRemovedUserFails() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doFindUserAsManaged();
-        doRemove(managedUser);
-        doCommit();
-        closeCurrentAndStartNewSession();
+    @BeforeEach
+    public void setUp(){
+        createEntityManager();
         newTransaction();
-        managedUserMustBeRemoved();
-        doThrowsPersistenceExceptionCausedByPersistentObjectExceptionWhenPersistingDetachedUser();
+        user = UserTestMock.userGiven();
     }
 
-    @Test
-    public void mergeUserRemoved() {
-        doPersist();
-        doCommit();
-        doFindUserAsManaged();
-        doRemove(managedUser);
-        doCommit();
+    @AfterEach
+    public void tearDown(){
+        closeEntityManager();
+    }
+
+    protected void doFindUserAsManaged() {
         newTransaction();
-        doMerge();
-        doCommit();
+        managedUser = entityManager.find(User.class, user.getId());
     }
 
-    @Test
-    public void mergeUserRemovedInAnotherSession() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doFindUserAsManaged();
-        doRemove(managedUser);
-        doCommit();
-        closeCurrentAndStartNewSession();
-        newTransaction();
-        managedUserMustBeRemoved();
-        doMerge();
-        doCommit();
+    protected void doEmulateDetachedUser() {
+        detachedUser = new User(user.getId());
     }
 
-    @Test
-    public void removeUserAlreadyRemovedFails() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doFindUserAsManaged();
-        doRemove(managedUser);
-        doCommit();
-        closeCurrentAndStartNewSession();
-        newTransaction();
-        doThrowsIllegalArgumentExceptionWhenRemovingDetachedUser();
+    protected void doMerge() {
+        entityManager.merge(user);
     }
 
-    @Test
-    public void removedUserMustNotExistInAnotherSession() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doFindUserAsManaged();
-        doRemove(managedUser);
-        doCommit();
-        closeCurrentAndStartNewSession();
-        newTransaction();
-        managedUserMustBeRemoved();
+    protected void doRemove() {
+        entityManager.remove(user);
     }
 
-    @Test
-    public void persistDetachedUserFails() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doEmulateDetachedUser();
-        newTransaction();
-        doThrowsPersistenceExceptionCausedByPersistentObjectExceptionWhenPersistingDetachedUser();
+    protected void doPersist() {
+        entityManager.persist(user);
     }
 
-    @Test
-    public void mergeDetachedUser() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doEmulateDetachedUser();
-        newTransaction();
-        doMerge(detachedUser);
-        doCommit();
+    protected void doMerge(Object obj) {
+        entityManager.merge(obj);
     }
 
-    @Test
-    public void removeDetachedUserFails() {
-        doPersist();
-        doCommit();
-        closeCurrentAndStartNewSession();
-        doEmulateDetachedUser();
-        newTransaction();
-        doThrowsIllegalArgumentExceptionWhenRemovingDetachedUser();
+    protected void doRemove(Object obj) {
+        entityManager.remove(obj);
     }
 
-    @Test
-    public void persistManagedUserWorks() {
-        doPersist();
-        doPersist();
-        doCommit();
+    protected void doPersist(Object obj) {
+        entityManager.persist(obj);
     }
 
-    @Test
-    public void persistManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
-        doCommit();
-        newTransaction();
-        doPersist();
-        doCommit();
+    protected static void createFactory() {
+        entityManagerFactory = Persistence.createEntityManagerFactory("db_jpa_hibernate");
     }
 
-    @Test
-    public void mergeManagedUserWorks() {
-        doPersist();
-        doMerge();
-        doCommit();
+    protected void createEntityManager() {
+        entityManager = entityManagerFactory.createEntityManager();
     }
 
-    @Test
-    public void mergeManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
-        doCommit();
-        newTransaction();
-        doMerge();
-        doCommit();
+    protected static void closeFactory() {
+        entityManagerFactory.close();
     }
 
-    @Test
-    public void removeManagedUserWorks() {
-        doPersist();
-        doRemove();
-        doCommit();
+    protected void closeEntityManager() {
+        entityManager.close();
     }
 
-    @Test
-    public void removeManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
-        doCommit();
-        newTransaction();
-        doRemove();
-        doCommit();
+    protected void newTransaction() {
+        entityManager.getTransaction().begin();
     }
 
-    private void doThrowsPersistenceExceptionCausedByPersistentObjectExceptionWhenPersistingDetachedUser() {
-        PersistenceException persistenceException = assertThrows(PersistenceException.class,
-                () -> entityManager.persist(user));
-
-        Throwable cause = persistenceException.getCause();
-        assertNotNull(cause);
-        assertEquals(PersistentObjectException.class, cause.getClass());
-        assertEquals("detached entity passed to persist: br.com.gcestaro.model.User", cause.getMessage());
+    protected void doCommit() {
+        entityManager.getTransaction().commit();
     }
 
-    private void doThrowsIllegalArgumentExceptionWhenRemovingDetachedUser() {
-        assertThrows(IllegalArgumentException.class,
-                () -> entityManager.remove(user.getId()),
-                "Removing a detached instance br.com.gcestaro.model.User#" + user.getId());
-    }
-
-    private void managedUserMustBeRemoved() {
-        assertNull(entityManager.find(User.class, managedUser.getId()));
+    protected void closeCurrentAndStartNewSession() {
+        closeEntityManager();
+        closeFactory();
+        createFactory();
+        createEntityManager();
     }
 }
