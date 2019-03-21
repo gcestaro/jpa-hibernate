@@ -1,6 +1,6 @@
 package br.com.gcestaro.test.util;
 
-import br.com.gcestaro.model.lifecycle.User;
+import br.com.gcestaro.model.lifecycle.JpaUser;
 
 public final class UserTestMock {
 
@@ -8,7 +8,7 @@ public final class UserTestMock {
         throw new IllegalStateException("Do not instantiate this");
     }
 
-    public static User userGiven() {
-        return new User("user", "hibernate");
+    public static JpaUser userGiven() {
+        return new JpaUser("jpaUser", "hibernate");
     }
 }

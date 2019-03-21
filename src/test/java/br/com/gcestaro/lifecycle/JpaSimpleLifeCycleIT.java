@@ -1,6 +1,6 @@
 package br.com.gcestaro.lifecycle;
 
-import br.com.gcestaro.model.lifecycle.User;
+import br.com.gcestaro.model.lifecycle.JpaUser;
 import org.hibernate.PersistentObjectException;
 import org.junit.jupiter.api.Test;
 
@@ -12,29 +12,29 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void persistTransientUser() {
-        doPersist();
+        doPersistUser();
         doCommit();
     }
 
     @Test
     public void mergeTransientUser() {
-        doMerge();
+        doMergeUser();
         doCommit();
     }
 
     @Test
     public void removeTransientUser() {
-        doRemove();
+        doRemoveUser();
         doCommit();
     }
 
     @Test
     public void persistRemovedUserFails() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doFindUserAsManaged();
-        doRemove(managedUser);
+        doRemove(managedJpaUser);
         doCommit();
         closeCurrentAndStartNewSession();
         newTransaction();
@@ -44,38 +44,38 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void mergeUserRemoved() {
-        doPersist();
+        doPersistUser();
         doCommit();
         doFindUserAsManaged();
-        doRemove(managedUser);
+        doRemove(managedJpaUser);
         doCommit();
         newTransaction();
-        doMerge();
+        doMergeUser();
         doCommit();
     }
 
     @Test
     public void mergeUserRemovedInAnotherSession() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doFindUserAsManaged();
-        doRemove(managedUser);
+        doRemove(managedJpaUser);
         doCommit();
         closeCurrentAndStartNewSession();
         newTransaction();
         managedUserMustBeRemoved();
-        doMerge();
+        doMergeUser();
         doCommit();
     }
 
     @Test
     public void removeUserAlreadyRemovedFails() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doFindUserAsManaged();
-        doRemove(managedUser);
+        doRemove(managedJpaUser);
         doCommit();
         closeCurrentAndStartNewSession();
         newTransaction();
@@ -84,11 +84,11 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void removedUserMustNotExistInAnotherSession() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doFindUserAsManaged();
-        doRemove(managedUser);
+        doRemove(managedJpaUser);
         doCommit();
         closeCurrentAndStartNewSession();
         newTransaction();
@@ -97,7 +97,7 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void persistDetachedUserFails() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doEmulateDetachedUser();
@@ -107,18 +107,18 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void mergeDetachedUser() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doEmulateDetachedUser();
         newTransaction();
-        doMerge(detachedUser);
+        doMerge(detachedJpaUser);
         doCommit();
     }
 
     @Test
     public void removeDetachedUserFails() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         doEmulateDetachedUser();
@@ -128,69 +128,69 @@ public class JpaSimpleLifeCycleIT extends JpaLifeCycleIT {
 
     @Test
     public void persistManagedUserWorks() {
-        doPersist();
-        doPersist();
+        doPersistUser();
+        doPersistUser();
         doCommit();
     }
 
     @Test
     public void persistManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
+        doPersistUser();
         doCommit();
         newTransaction();
-        doPersist();
+        doPersistUser();
         doCommit();
     }
 
     @Test
     public void mergeManagedUserWorks() {
-        doPersist();
-        doMerge();
+        doPersistUser();
+        doMergeUser();
         doCommit();
     }
 
     @Test
     public void mergeManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
+        doPersistUser();
         doCommit();
         newTransaction();
-        doMerge();
+        doMergeUser();
         doCommit();
     }
 
     @Test
     public void removeManagedUserWorks() {
-        doPersist();
-        doRemove();
+        doPersistUser();
+        doRemoveUser();
         doCommit();
     }
 
     @Test
     public void removeManagedUserWorksEvenInDifferentTransactions() {
-        doPersist();
+        doPersistUser();
         doCommit();
         newTransaction();
-        doRemove();
+        doRemoveUser();
         doCommit();
     }
 
     private void doThrowsPersistenceExceptionCausedByPersistentObjectExceptionWhenPersistingDetachedUser() {
         PersistenceException persistenceException = assertThrows(PersistenceException.class,
-                () -> entityManager.persist(user));
+                () -> entityManager.persist(jpaUser));
 
         Throwable cause = persistenceException.getCause();
         assertNotNull(cause);
         assertEquals(PersistentObjectException.class, cause.getClass());
-        assertEquals("detached entity passed to persist: br.com.gcestaro.model.lifecycle.User", cause.getMessage());
+        assertEquals("detached entity passed to persist: br.com.gcestaro.model.lifecycle.JpaUser", cause.getMessage());
     }
 
     private void doThrowsIllegalArgumentExceptionWhenRemovingDetachedUser() {
         assertThrows(IllegalArgumentException.class,
-                () -> entityManager.remove(user.getId()),
-                "Removing a detached instance br.com.gcestaro.model.lifecycle.User#" + user.getId());
+                () -> entityManager.remove(jpaUser.getId()),
+                "Removing a detached instance br.com.gcestaro.model.lifecycle.JpaUser#" + jpaUser.getId());
     }
 
     private void managedUserMustBeRemoved() {
-        assertNull(entityManager.find(User.class, managedUser.getId()));
+        assertNull(entityManager.find(JpaUser.class, managedJpaUser.getId()));
     }
 }

@@ -18,18 +18,18 @@ public class JpaRelationshipLifeCycleIT extends JpaLifeCycleIT {
     @Test
     public void removeUserWithTransientPermissionWorks() {
         givenUserWithUserPermission();
-        doRemove();
+        doRemoveUser();
         doCommit();
     }
 
     @Test
     public void mergeUserWithTransientPermissionThrowsRollbackExceptionCausedByTransientObjectException() {
-        doPersist();
+        doPersistUser();
         doCommit();
         closeCurrentAndStartNewSession();
         givenUserWithAdminPermission();
         newTransaction();
-        doMerge();
+        doMergeUser();
         doThrowsRollbackExceptionCausedByTransientObjectExceptionWhenCommitingUserRefenencesToTransientPermission();
     }
 
@@ -38,7 +38,7 @@ public class JpaRelationshipLifeCycleIT extends JpaLifeCycleIT {
         givenUserWithAdminPermission();
         doPersistAndCommitPermissionOnAnotherSession();
         updatePermissionToUserCategoryOnNewTransaction();
-        doPersist();
+        doPersistUser();
         doCommit();
         closeSessionAndFindPermission();
         permissionMustNotChange();
@@ -49,7 +49,7 @@ public class JpaRelationshipLifeCycleIT extends JpaLifeCycleIT {
         givenUserWithAdminPermission();
         doPersistAndCommitPermissionOnAnotherSession();
         updatePermissionToUserCategoryOnNewTransaction();
-        doMerge();
+        doMergeUser();
         doCommit();
         closeSessionAndFindPermission();
         permissionMustNotChange();
@@ -60,7 +60,7 @@ public class JpaRelationshipLifeCycleIT extends JpaLifeCycleIT {
         givenUserWithAdminPermission();
         doPersistAndCommitPermissionOnAnotherSession();
         updatePermissionToUserCategoryOnNewTransaction();
-        doRemove();
+        doRemoveUser();
         doCommit();
         closeSessionAndFindPermission();
         permissionMustNotChange();
@@ -118,7 +118,7 @@ public class JpaRelationshipLifeCycleIT extends JpaLifeCycleIT {
 
     private void addUserPermission(Category category) {
         permission = new Permission(category);
-        user.addPermission(permission);
+        jpaUser.addPermission(permission);
     }
 
     private void updatePermissionToUserCategory() {

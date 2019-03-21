@@ -4,12 +4,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.persistence.*;
 
 @Entity
 @NoArgsConstructor
@@ -20,18 +19,19 @@ public class Permission implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     @Enumerated(EnumType.STRING)
     private Category category;
 
     @ManyToMany(mappedBy = "permissions")
-    private List<User> users = new ArrayList<>();
+    private List<JpaUser> jpaUsers = new ArrayList<>();
 
-    public Permission(Category category){
+    public Permission(Category category) {
         this.category = category;
     }
 
-    public List<User> getUsers() {
-        return Collections.unmodifiableList(users);
+    public List<JpaUser> getJpaUsers() {
+        return Collections.unmodifiableList(jpaUsers);
     }
 }

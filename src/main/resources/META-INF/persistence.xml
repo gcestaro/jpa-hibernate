@@ -18,10 +18,18 @@
 
             <!-- Hibernate -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect" />
-            <property name="hibernate.hbm2ddl.auto" value="validate" />
-            <property name="hibernate.show_sql" value="true" />
-            <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.connection.shutdown" value="true" />
+
+            <!-- sql logs -->
+            <property name="hibernate.show_sql" value="true" />
+            <!--<property name="hibernate.format_sql" value="true"/>-->
+
+            <!-- hbm2ddl.auto -->
+            <property name="hibernate.hbm2ddl.auto" value="validate" />
+            <!--<property name="hibernate.hbm2ddl.auto" value="update" />-->
+            <!--<property name="hibernate.hbm2ddl.auto" value="create" />-->
+            <!--<property name="hibernate.hbm2ddl.auto" value="create-drop" />-->
+            <!--<property name="hibernate.hbm2ddl.auto" value="none" />-->
         </properties>
     </persistence-unit>
 </persistence>
